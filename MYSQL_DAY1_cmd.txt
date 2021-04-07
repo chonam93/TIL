@@ -1,0 +1,567 @@
+오늘의 SQL 문법
+✔✔✔✔✔✔✔✔✔✔✔✔✔✔
+CTRL+C => cmd창에서 바깥으로 나갈 때
+ㅡ ㅡ ㅡ ㅡ ㅡ ㅡ ㅡ ㅡ ㅡ ㅡ ㅡ ㅡ ㅡ ㅡ ㅡ  
+DISTINCT 칼럼: 해당컬럼에 값이 뭐있는지 중복값 제외하고 보여줌
+LIMIT a : 출력 레코드값 제한
+CONCAT( 컬럼, ' '  ,컬럼 ) AS name: 문자열 결합 함수, 두 컬럼의 결과값을 붙여서 name  컬럼으로 출력해준다
+ORDER BY 칼럼 혹은 표현식 (ASC 또는 DESC) : 컴마를 사용하면 우선 앞의 컬럼으로 정렬 후 만약 데이터가 같다면 뒤의 컬럼 순으로 다시 정렬
+날짜데이터에서 일부만 추출하기
+: MONTH( ), HOUR( ), SECOND( ), ......
+IFNULL(칼럼, '대체할 값')
+: 데이터가 NULL이면 대체해서 출력
+
+🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱🐉아이디 생성
+
+CREATE USER pbl@localhost identified by 'pblpw'; ✔ 로컬호스트로 pbl유저 생성 / 내부에서만 사용하는 아이디
+
+CREATE USER pbl@'%' identified by 'pblpw'; ✔ host로 pbl유저 생성 / 외부에서 접근가능한 아이디
+
+GRANT ALL privileges on pbldb.* to 'pbl'@'localhost' with grant option; ✔ pbldb에 관한 모든 권한 부여 / 모든 db에 관한 모든 권한이 아니라는 점 유의
+
+GRANT ALL privileges on pbldb.* to 'pbl'@'%' with grant option; ✔ 외부에서도 접속 가능하게 설정한다는 뜻 / localhost와 %는 별개로 구분되어 생성된다
+
+SELECT user, host FROM mysql.user; ✔ mysql이란 테이블에 저장되어있는 유저들의 이름과 호스트 상태를 보여줌
+
+SELECT user(); ✔ 현재 유저상태
+
+FLUSH privileges; ✔ 즉시 권한 부여 / 다른 작업으로 인해 늦게 부여되는 경우가 있어서 강제성으로 부여
+
+SHOW GRANTS FOR pbl@localhost; ✔ 권한 확인
+
+
+🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱🐉데이터베이스 확인
+
+C:\Users\Admin>mysql -u root -p  ✔mysql -u (로그인아이디) -p          패스워드는 아래에서
+Enter password: ****
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 39
+Server version: 8.0.23 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> exit
+Bye
+
+C:\Users\Admin>mysql -u pbl -p ✔
+Enter password: *****
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 40
+Server version: 8.0.23 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> show tables; ✔
+ERROR 1046 (3D000): No database selected ✔ why? Database 선택을 안했기때문에 보여줄 Table이 없음
+mysql> show databases ✔;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| pbldb              |
++--------------------+
+2 rows in set (0.00 sec)
+
+mysql> use pbldb; ✔
+Database changed
+mysql> show tables; ✔ pbldb를 선택했기 때문에 Table 잘 나온다
++-----------------+
+| Tables_in_pbldb |
++-----------------+
+| pets            |
++-----------------+
+1 row in set (0.00 sec)
+
+mysql> desc pets;  ✔pets Table의 정보를 보여준다. desc = Describe
++----------+-------------+------+-----+---------+-------+
+| Field    | Type        | Null | Key | Default | Extra |
++----------+-------------+------+-----+---------+-------+
+| name     | varchar(20) | YES  |     | NULL    |       |
+| owner    | varchar(20) | YES  |     | NULL    |       |
+| sepecies | varchar(20) | YES  |     | NULL    |       |
+| gender   | char(1)     | YES  |     | NULL    |       |
+| birth    | date        | YES  |     | NULL    |       |
+| death    | date        | YES  |     | NULL    |       |
++----------+-------------+------+-----+---------+-------+
+6 rows in set (0.00 sec)
+
+mysql> describe pets; ✔
++----------+-------------+------+-----+---------+-------+
+| Field    | Type        | Null | Key | Default | Extra |
++----------+-------------+------+-----+---------+-------+
+| name     | varchar(20) | YES  |     | NULL    |       |
+| owner    | varchar(20) | YES  |     | NULL    |       |
+| sepecies | varchar(20) | YES  |     | NULL    |       |
+| gender   | char(1)     | YES  |     | NULL    |       |
+| birth    | date        | YES  |     | NULL    |       |
+| death    | date        | YES  |     | NULL    |       |
++----------+-------------+------+-----+---------+-------+
+6 rows in set (0.00 sec)
+
+mysql> INSERT INTO pets (name, owner) VALUES ('Fluffy', 'Harold'); ✔ INSERT INTO 테이블명 (컬럼1, 컬럼2, 컬럼3, ...) VALUES (컬럼1에 입력할 데이터, 컬럼2에 입력할 데이터, 컬럼3에 입력할 데이터, ...)
+Query OK, 1 row affected (0.01 sec)
+
+mysql> exit ✔mySQL 종료
+Bye
+
+🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱‍🐉🐱🐉파일업로드
+
+C:\Users\Admin>cd C:\Users\Admin\Downloads\PBL-main\mysql ✔ 업로드할 파일이 있는 위치까지 진입 / cd 명령어 사용
+
+C:\Users\Admin\Downloads\PBL-main\mysql>mysql -u root -p ✔ 먼저 루트 권한으로 로그인
+Enter password: ****
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 43
+Server version: 8.0.23 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> set global local_infile=1;  ✔ 루트 권한으로 local_infile을 1로 바꿔줌. 디폴트값은 0인데 1로 바꿔서 ON상태로 만들어주는 것
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> exit
+Bye
+
+C:\Users\Admin\Downloads\PBL-main\mysql>mysql -u pbl -p pbldb --local_infile=1 ✔pbl 아이디로 로그인하고 pbldb(데이터베이스)에다가 파일을 불러와서 테이블 생성할 예정이라는 뜻
+Enter password: *****
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 45
+Server version: 8.0.23 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> load data local infile "pet.txt" into table pets; ✔pet.txt 파일을 pets 테이블에 로드한다
+Query OK, 8 rows affected (0.01 sec)
+Records: 8  Deleted: 0  Skipped: 0  Warnings: 0
+
+mysql> select * from pets; ✔추가된 pet.txt 파일 확인
++----------+--------+----------+--------+------------+------------+
+| name     | owner  | sepecies | gender | birth      | death      |
++----------+--------+----------+--------+------------+------------+
+| Fluffy   | Harold | NULL     | NULL   | NULL       | NULL       |
+| Fluffy   | Harold | NULL     | NULL   | NULL       | NULL       |
+| Fluffy   | Harold | cat      | f      | 1993-02-04 | NULL       |
+| Claws    | Gwen   | cat      | m      | 1994-03-17 | NULL       |
+| Buffy    | Harold | dog      | f      | 1989-05-13 | NULL       |
+| Fang     | Benny  | dog      | m      | 1990-08-27 | NULL       |
+| Bowser   | Diane  | dog      | m      | 1979-08-31 | 1995-07-29 |
+| Chirpy   | Gwen   | bird     | f      | 1998-09-11 | NULL       |
+| Whistler | Gwen   | bird     | NULL   | 1997-12-09 | NULL       |
+| Slim     | Benny  | snake    | m      | 1996-04-29 | NULL       |
++----------+--------+----------+--------+------------+------------+
+10 rows in set (0.00 sec)
+
+mysql> SELECT name, owner FROM pets;  ✔
++----------+--------+
+| name     | owner  |
++----------+--------+
+| Fluffy   | Harold |
+| Fluffy   | Harold |
+| Fluffy   | Harold |
+| Claws    | Gwen   |
+| Buffy    | Harold |
+| Fang     | Benny  |
+| Bowser   | Diane  |
+| Chirpy   | Gwen   |
+| Whistler | Gwen   |
+| Slim     | Benny  |
++----------+--------+
+10 rows in set (0.00 sec)
+
+mysql> SELECT name, owner, gender FROM pets WHERE gender = 'f'; ✔
++--------+--------+--------+
+| name   | owner  | gender |
++--------+--------+--------+
+| Fluffy | Harold | f      |
+| Buffy  | Harold | f      |
+| Chirpy | Gwen   | f      |
++--------+--------+--------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT name, owner, birth FROM pets WHERE birth BETWEEN '1993-01-01' AND '1994-12-31'; ✔
++--------+--------+------------+
+| name   | owner  | birth      |
++--------+--------+------------+
+| Fluffy | Harold | 1993-02-04 |
+| Claws  | Gwen   | 1994-03-17 |
++--------+--------+------------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT name, owner, birth FROM pets WHERE name='fluffy'; ✔
++--------+--------+------------+
+| name   | owner  | birth      |
++--------+--------+------------+
+| Fluffy | Harold | NULL       |
+| Fluffy | Harold | NULL       |
+| Fluffy | Harold | 1993-02-04 |
++--------+--------+------------+
+3 rows in set (0.00 sec)
+
+mysql> select name, owner, birth from pets order by birth; ✔
++----------+--------+------------+
+| name     | owner  | birth      |
++----------+--------+------------+
+| Fluffy   | Harold | NULL       |
+| Fluffy   | Harold | NULL       |
+| Bowser   | Diane  | 1979-08-31 |
+| Buffy    | Harold | 1989-05-13 |
+| Fang     | Benny  | 1990-08-27 |
+| Fluffy   | Harold | 1993-02-04 |
+| Claws    | Gwen   | 1994-03-17 |
+| Slim     | Benny  | 1996-04-29 |
+| Whistler | Gwen   | 1997-12-09 |
+| Chirpy   | Gwen   | 1998-09-11 |
++----------+--------+------------+
+10 rows in set (0.00 sec)
+
+mysql> select name, owner, birth from pets order by birth desc; ✔
++----------+--------+------------+
+| name     | owner  | birth      |
++----------+--------+------------+
+| Chirpy   | Gwen   | 1998-09-11 |
+| Whistler | Gwen   | 1997-12-09 |
+| Slim     | Benny  | 1996-04-29 |
+| Claws    | Gwen   | 1994-03-17 |
+| Fluffy   | Harold | 1993-02-04 |
+| Fang     | Benny  | 1990-08-27 |
+| Buffy    | Harold | 1989-05-13 |
+| Bowser   | Diane  | 1979-08-31 |
+| Fluffy   | Harold | NULL       |
+| Fluffy   | Harold | NULL       |
++----------+--------+------------+
+10 rows in set (0.00 sec)
+
+mysql> select name, owner, birth from pets order by birth asc; ✔
++----------+--------+------------+
+| name     | owner  | birth      |
++----------+--------+------------+
+| Fluffy   | Harold | NULL       |
+| Fluffy   | Harold | NULL       |
+| Bowser   | Diane  | 1979-08-31 |
+| Buffy    | Harold | 1989-05-13 |
+| Fang     | Benny  | 1990-08-27 |
+| Fluffy   | Harold | 1993-02-04 |
+| Claws    | Gwen   | 1994-03-17 |
+| Slim     | Benny  | 1996-04-29 |
+| Whistler | Gwen   | 1997-12-09 |
+| Chirpy   | Gwen   | 1998-09-11 |
++----------+--------+------------+
+10 rows in set (0.00 sec)
+
+mysql> select name, owner, birth from pets order by 3 asc, 1; ✔
++----------+--------+------------+
+| name     | owner  | birth      |
++----------+--------+------------+
+| Fluffy   | Harold | NULL       |
+| Fluffy   | Harold | NULL       |
+| Bowser   | Diane  | 1979-08-31 |
+| Buffy    | Harold | 1989-05-13 |
+| Fang     | Benny  | 1990-08-27 |
+| Fluffy   | Harold | 1993-02-04 |
+| Claws    | Gwen   | 1994-03-17 |
+| Slim     | Benny  | 1996-04-29 |
+| Whistler | Gwen   | 1997-12-09 |
+| Chirpy   | Gwen   | 1998-09-11 |
++----------+--------+------------+
+10 rows in set (0.00 sec)
+
+mysql> select name, owner, birth from pets order by 3 asc, 2; ✔
++----------+--------+------------+
+| name     | owner  | birth      |
++----------+--------+------------+
+| Fluffy   | Harold | NULL       |
+| Fluffy   | Harold | NULL       |
+| Bowser   | Diane  | 1979-08-31 |
+| Buffy    | Harold | 1989-05-13 |
+| Fang     | Benny  | 1990-08-27 |
+| Fluffy   | Harold | 1993-02-04 |
+| Claws    | Gwen   | 1994-03-17 |
+| Slim     | Benny  | 1996-04-29 |
+| Whistler | Gwen   | 1997-12-09 |
+| Chirpy   | Gwen   | 1998-09-11 |
++----------+--------+------------+
+10 rows in set (0.00 sec)
+
+mysql> select name, owner, birth from pets order by 3, 2; ✔
++----------+--------+------------+
+| name     | owner  | birth      |
++----------+--------+------------+
+| Fluffy   | Harold | NULL       |
+| Fluffy   | Harold | NULL       |
+| Bowser   | Diane  | 1979-08-31 |
+| Buffy    | Harold | 1989-05-13 |
+| Fang     | Benny  | 1990-08-27 |
+| Fluffy   | Harold | 1993-02-04 |
+| Claws    | Gwen   | 1994-03-17 |
+| Slim     | Benny  | 1996-04-29 |
+| Whistler | Gwen   | 1997-12-09 |
+| Chirpy   | Gwen   | 1998-09-11 |
++----------+--------+------------+
+10 rows in set (0.00 sec)
+
+mysql> select name, owner, birth from pets order by 2; ✔
++----------+--------+------------+
+| name     | owner  | birth      |
++----------+--------+------------+
+| Fang     | Benny  | 1990-08-27 |
+| Slim     | Benny  | 1996-04-29 |
+| Bowser   | Diane  | 1979-08-31 |
+| Claws    | Gwen   | 1994-03-17 |
+| Chirpy   | Gwen   | 1998-09-11 |
+| Whistler | Gwen   | 1997-12-09 |
+| Fluffy   | Harold | NULL       |
+| Fluffy   | Harold | NULL       |
+| Fluffy   | Harold | 1993-02-04 |
+| Buffy    | Harold | 1989-05-13 |
++----------+--------+------------+
+10 rows in set (0.00 sec)
+
+mysql> select name, owner, birth from pets order by 2, 3; ✔
++----------+--------+------------+
+| name     | owner  | birth      |
++----------+--------+------------+
+| Fang     | Benny  | 1990-08-27 |
+| Slim     | Benny  | 1996-04-29 |
+| Bowser   | Diane  | 1979-08-31 |
+| Claws    | Gwen   | 1994-03-17 |
+| Whistler | Gwen   | 1997-12-09 |
+| Chirpy   | Gwen   | 1998-09-11 |
+| Fluffy   | Harold | NULL       |
+| Fluffy   | Harold | NULL       |
+| Buffy    | Harold | 1989-05-13 |
+| Fluffy   | Harold | 1993-02-04 |
++----------+--------+------------+
+10 rows in set (0.00 sec)
+
+mysql> select name from pets where death is not null; ✔
++--------+
+| name   |
++--------+
+| Bowser |
++--------+
+1 row in set (0.00 sec)
+
+mysql> exit ✔
+Bye
+
+C:\Users\Admin\Downloads\PBL-main\mysql>dir ✔해당 경로에 있는 파일 확인하는 명령어 DIR
+ C 드라이브의 볼륨에는 이름이 없습니다.
+ 볼륨 일련 번호: B06D-416C
+
+ C:\Users\Admin\Downloads\PBL-main\mysql 디렉터리
+
+2021-04-07  오후 01:55    <DIR>          .
+2021-04-07  오후 01:55    <DIR>          ..
+2021-04-07  오전 09:02             2,793 emp.sql
+2021-04-07  오전 09:02           210,202 mysqlsampledatabase.sql
+2021-04-07  오전 09:02             2,390 mysql_emp.txt
+2021-04-07  오전 09:02               272 pet.txt
+               4개 파일             215,657 바이트
+               2개 디렉터리  183,432,982,528 바이트 남음
+
+
+
+C:\Users\Admin\Downloads\test_db-master>cd C:\Users\Admin\Downloads\test_db-master ✔폴더 들어있는 새로운 경로로 이동
+
+C:\Users\Admin\Downloads\test_db-master>mysql -u pbl -p < employees.sql ✔why? pbl유저는 데이터베이스에 추가할 권한이 없음. 최초에 pbldb에 관한 권한 만 부여했음
+Enter password: *****
+ERROR 1044 (42000) at line 25: Access denied for user 'pbl'@'localhost' to database 'employees'
+
+C:\Users\Admin\Downloads\test_db-master>mysql -u root -p < employees.sql ✔root권한으로 employees.sql 추가 / 스키마 자체를 추가하는 것이라고 생각
+Enter password: ****
+INFO
+CREATING DATABASE STRUCTURE
+INFO
+storage engine: InnoDB
+INFO
+LOADING departments
+INFO
+LOADING employees
+INFO
+LOADING dept_emp
+INFO
+LOADING dept_manager
+INFO
+LOADING titles
+INFO
+LOADING salaries
+data_load_time_diff
+00:00:58
+
+C:\Users\Admin\Downloads\test_db-master>mysql -u root -p ✔
+Enter password: ****
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 55
+Server version: 8.0.23 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> show databases; ✔데이터베이스 확인. employees 생성됨
++--------------------+
+| Database           |
++--------------------+
+| employees          |
+| information_schema |
+| mysql              |
+| pbldb              |
+| performance_schema |
+| sakila             |
+| sys                |
+| world              |
++--------------------+
+8 rows in set (0.00 sec)
+
+mysql> exit ✔
+Bye
+
+mysql> use employees ✔
+Database changed
+mysql> select * from employees limit 100; ✔
++--------+------------+-------------+--------------+--------+------------+
+| emp_no | birth_date | first_name  | last_name    | gender | hire_date  |
++--------+------------+-------------+--------------+--------+------------+
+|  10001 | 1953-09-02 | Georgi      | Facello      | M      | 1986-06-26 |
+|  10002 | 1964-06-02 | Bezalel     | Simmel       | F      | 1985-11-21 |
+|  10003 | 1959-12-03 | Parto       | Bamford      | M      | 1986-08-28 |
+|  10004 | 1954-05-01 | Chirstian   | Koblick      | M      | 1986-12-01 |
+|  10005 | 1955-01-21 | Kyoichi     | Maliniak     | M      | 1989-09-12 |
+|  10006 | 1953-04-20 | Anneke      | Preusig      | F      | 1989-06-02 |
+|  10007 | 1957-05-23 | Tzvetan     | Zielinski    | F      | 1989-02-10 |
+|  10008 | 1958-02-19 | Saniya      | Kalloufi     | M      | 1994-09-15 |
+|  10009 | 1952-04-19 | Sumant      | Peac         | F      | 1985-02-18 |
+|  10010 | 1963-06-01 | Duangkaew   | Piveteau     | F      | 1989-08-24 |
+|  10011 | 1953-11-07 | Mary        | Sluis        | F      | 1990-01-22 |
+|  10012 | 1960-10-04 | Patricio    | Bridgland    | M      | 1992-12-18 |
+|  10013 | 1963-06-07 | Eberhardt   | Terkki       | M      | 1985-10-20 |
+|  10014 | 1956-02-12 | Berni       | Genin        | M      | 1987-03-11 |
+|  10015 | 1959-08-19 | Guoxiang    | Nooteboom    | M      | 1987-07-02 |
+|  10016 | 1961-05-02 | Kazuhito    | Cappelletti  | M      | 1995-01-27 |
+|  10017 | 1958-07-06 | Cristinel   | Bouloucos    | F      | 1993-08-03 |
+|  10018 | 1954-06-19 | Kazuhide    | Peha         | F      | 1987-04-03 |
+|  10019 | 1953-01-23 | Lillian     | Haddadi      | M      | 1999-04-30 |
+|  10020 | 1952-12-24 | Mayuko      | Warwick      | M      | 1991-01-26 |
+|  10021 | 1960-02-20 | Ramzi       | Erde         | M      | 1988-02-10 |
+|  10022 | 1952-07-08 | Shahaf      | Famili       | M      | 1995-08-22 |
+|  10023 | 1953-09-29 | Bojan       | Montemayor   | F      | 1989-12-17 |
+|  10024 | 1958-09-05 | Suzette     | Pettey       | F      | 1997-05-19 |
+|  10025 | 1958-10-31 | Prasadram   | Heyers       | M      | 1987-08-17 |
+|  10026 | 1953-04-03 | Yongqiao    | Berztiss     | M      | 1995-03-20 |
+|  10027 | 1962-07-10 | Divier      | Reistad      | F      | 1989-07-07 |
+|  10028 | 1963-11-26 | Domenick    | Tempesti     | M      | 1991-10-22 |
+|  10029 | 1956-12-13 | Otmar       | Herbst       | M      | 1985-11-20 |
+|  10030 | 1958-07-14 | Elvis       | Demeyer      | M      | 1994-02-17 |
+|  10031 | 1959-01-27 | Karsten     | Joslin       | M      | 1991-09-01 |
+|  10032 | 1960-08-09 | Jeong       | Reistad      | F      | 1990-06-20 |
+|  10033 | 1956-11-14 | Arif        | Merlo        | M      | 1987-03-18 |
+|  10034 | 1962-12-29 | Bader       | Swan         | M      | 1988-09-21 |
+|  10035 | 1953-02-08 | Alain       | Chappelet    | M      | 1988-09-05 |
+|  10036 | 1959-08-10 | Adamantios  | Portugali    | M      | 1992-01-03 |
+|  10037 | 1963-07-22 | Pradeep     | Makrucki     | M      | 1990-12-05 |
+|  10038 | 1960-07-20 | Huan        | Lortz        | M      | 1989-09-20 |
+|  10039 | 1959-10-01 | Alejandro   | Brender      | M      | 1988-01-19 |
+|  10040 | 1959-09-13 | Weiyi       | Meriste      | F      | 1993-02-14 |
+|  10041 | 1959-08-27 | Uri         | Lenart       | F      | 1989-11-12 |
+|  10042 | 1956-02-26 | Magy        | Stamatiou    | F      | 1993-03-21 |
+|  10043 | 1960-09-19 | Yishay      | Tzvieli      | M      | 1990-10-20 |
+|  10044 | 1961-09-21 | Mingsen     | Casley       | F      | 1994-05-21 |
+|  10045 | 1957-08-14 | Moss        | Shanbhogue   | M      | 1989-09-02 |
+|  10046 | 1960-07-23 | Lucien      | Rosenbaum    | M      | 1992-06-20 |
+|  10047 | 1952-06-29 | Zvonko      | Nyanchama    | M      | 1989-03-31 |
+|  10048 | 1963-07-11 | Florian     | Syrotiuk     | M      | 1985-02-24 |
+|  10049 | 1961-04-24 | Basil       | Tramer       | F      | 1992-05-04 |
+|  10050 | 1958-05-21 | Yinghua     | Dredge       | M      | 1990-12-25 |
+|  10051 | 1953-07-28 | Hidefumi    | Caine        | M      | 1992-10-15 |
+|  10052 | 1961-02-26 | Heping      | Nitsch       | M      | 1988-05-21 |
+|  10053 | 1954-09-13 | Sanjiv      | Zschoche     | F      | 1986-02-04 |
+|  10054 | 1957-04-04 | Mayumi      | Schueller    | M      | 1995-03-13 |
+|  10055 | 1956-06-06 | Georgy      | Dredge       | M      | 1992-04-27 |
+|  10056 | 1961-09-01 | Brendon     | Bernini      | F      | 1990-02-01 |
+|  10057 | 1954-05-30 | Ebbe        | Callaway     | F      | 1992-01-15 |
+|  10058 | 1954-10-01 | Berhard     | McFarlin     | M      | 1987-04-13 |
+|  10059 | 1953-09-19 | Alejandro   | McAlpine     | F      | 1991-06-26 |
+|  10060 | 1961-10-15 | Breannda    | Billingsley  | M      | 1987-11-02 |
+|  10061 | 1962-10-19 | Tse         | Herber       | M      | 1985-09-17 |
+|  10062 | 1961-11-02 | Anoosh      | Peyn         | M      | 1991-08-30 |
+|  10063 | 1952-08-06 | Gino        | Leonhardt    | F      | 1989-04-08 |
+|  10064 | 1959-04-07 | Udi         | Jansch       | M      | 1985-11-20 |
+|  10065 | 1963-04-14 | Satosi      | Awdeh        | M      | 1988-05-18 |
+|  10066 | 1952-11-13 | Kwee        | Schusler     | M      | 1986-02-26 |
+|  10067 | 1953-01-07 | Claudi      | Stavenow     | M      | 1987-03-04 |
+|  10068 | 1962-11-26 | Charlene    | Brattka      | M      | 1987-08-07 |
+|  10069 | 1960-09-06 | Margareta   | Bierman      | F      | 1989-11-05 |
+|  10070 | 1955-08-20 | Reuven      | Garigliano   | M      | 1985-10-14 |
+|  10071 | 1958-01-21 | Hisao       | Lipner       | M      | 1987-10-01 |
+|  10072 | 1952-05-15 | Hironoby    | Sidou        | F      | 1988-07-21 |
+|  10073 | 1954-02-23 | Shir        | McClurg      | M      | 1991-12-01 |
+|  10074 | 1955-08-28 | Mokhtar     | Bernatsky    | F      | 1990-08-13 |
+|  10075 | 1960-03-09 | Gao         | Dolinsky     | F      | 1987-03-19 |
+|  10076 | 1952-06-13 | Erez        | Ritzmann     | F      | 1985-07-09 |
+|  10077 | 1964-04-18 | Mona        | Azuma        | M      | 1990-03-02 |
+|  10078 | 1959-12-25 | Danel       | Mondadori    | F      | 1987-05-26 |
+|  10079 | 1961-10-05 | Kshitij     | Gils         | F      | 1986-03-27 |
+|  10080 | 1957-12-03 | Premal      | Baek         | M      | 1985-11-19 |
+|  10081 | 1960-12-17 | Zhongwei    | Rosen        | M      | 1986-10-30 |
+|  10082 | 1963-09-09 | Parviz      | Lortz        | M      | 1990-01-03 |
+|  10083 | 1959-07-23 | Vishv       | Zockler      | M      | 1987-03-31 |
+|  10084 | 1960-05-25 | Tuval       | Kalloufi     | M      | 1995-12-15 |
+|  10085 | 1962-11-07 | Kenroku     | Malabarba    | M      | 1994-04-09 |
+|  10086 | 1962-11-19 | Somnath     | Foote        | M      | 1990-02-16 |
+|  10087 | 1959-07-23 | Xinglin     | Eugenio      | F      | 1986-09-08 |
+|  10088 | 1954-02-25 | Jungsoon    | Syrzycki     | F      | 1988-09-02 |
+|  10089 | 1963-03-21 | Sudharsan   | Flasterstein | F      | 1986-08-12 |
+|  10090 | 1961-05-30 | Kendra      | Hofting      | M      | 1986-03-14 |
+|  10091 | 1955-10-04 | Amabile     | Gomatam      | M      | 1992-11-18 |
+|  10092 | 1964-10-18 | Valdiodio   | Niizuma      | F      | 1989-09-22 |
+|  10093 | 1964-06-11 | Sailaja     | Desikan      | M      | 1996-11-05 |
+|  10094 | 1957-05-25 | Arumugam    | Ossenbruggen | F      | 1987-04-18 |
+|  10095 | 1965-01-03 | Hilari      | Morton       | M      | 1986-07-15 |
+|  10096 | 1954-09-16 | Jayson      | Mandell      | M      | 1990-01-14 |
+|  10097 | 1952-02-27 | Remzi       | Waschkowski  | M      | 1990-09-15 |
+|  10098 | 1961-09-23 | Sreekrishna | Servieres    | F      | 1985-05-13 |
+|  10099 | 1956-05-25 | Valter      | Sullins      | F      | 1988-10-18 |
+|  10100 | 1953-04-21 | Hironobu    | Haraldson    | F      | 1987-09-21 |
++--------+------------+-------------+--------------+--------+------------+
+100 rows in set (0.01 sec)
+
+mysql> DESC EMPLOYEES; ✔
++------------+---------------+------+-----+---------+-------+
+| Field      | Type          | Null | Key | Default | Extra |
++------------+---------------+------+-----+---------+-------+
+| emp_no     | int           | NO   | PRI | NULL    |       |
+| birth_date | date          | NO   |     | NULL    |       |
+| first_name | varchar(14)   | NO   |     | NULL    |       |
+| last_name  | varchar(16)   | NO   |     | NULL    |       |
+| gender     | enum('M','F') | NO   |     | NULL    |       |
+| hire_date  | date          | NO   |     | NULL    |       |
++------------+---------------+------+-----+---------+-------+
+6 rows in set (0.01 sec)
